@@ -1,6 +1,6 @@
 [package]
 name = "focus-watch"
-version = "0.1.0"
+version = "0.1.1"
 description = "macOS-only always-on-top readout of which app currently has focus"
 authors = ["hexxt"]
 edition = "2021"

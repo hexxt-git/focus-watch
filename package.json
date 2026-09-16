@@ -1,6 +1,6 @@
 {
   "name": "focus-watch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "packageManager": "pnpm@11.21.0",
   "description": "macOS-only always-on-top readout of which app currently has focus",
