@@ -2,7 +2,9 @@
   "name": "focus-watch",
   "version": "0.1.0",
   "private": true,
-  "description": "Always-on-top readout of which app currently has focus",
+  "packageManager": "pnpm@11.21.0",
+  "description": "macOS-only always-on-top readout of which app currently has focus",
+  "os": ["darwin"],
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

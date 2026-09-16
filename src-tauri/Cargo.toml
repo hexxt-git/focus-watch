@@ -1,7 +1,7 @@
 [package]
 name = "focus-watch"
 version = "0.1.0"
-description = "Always-on-top readout of which app currently has focus"
+description = "macOS-only always-on-top readout of which app currently has focus"
 authors = ["hexxt"]
 edition = "2021"
 
@@ -12,7 +12,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+# Not target-gated: this app only builds on macOS.
 objc2 = "0.6"
 
 [profile.release]

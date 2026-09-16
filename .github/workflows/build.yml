@@ -1,0 +1,61 @@
+name: build
+
+# Manual only, plus tag pushes. Nothing here needs to run on every commit, and
+# macOS runners bill at 10x against the Actions quota.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: macos-latest
+    # tauri-action creates the draft release and uploads the bundles to it.
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS only: the app reads NSWorkspace and won't compile elsewhere.
+        include:
+          - label: macos-arm64
+            target: aarch64-apple-darwin
+          - label: macos-x64
+            target: x86_64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # There is no frontend build — the UI is static HTML — but the Tauri CLI
+      # is a devDependency, so the lockfile still has to be installed.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target ${{ matrix.target }}
+          # Empty on a manual run, which builds without publishing anything.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: focus-watch ${{ github.ref_name }}
+          releaseDraft: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: focus-watch-${{ matrix.label }}
+          path: src-tauri/target/**/release/bundle/**
+          if-no-files-found: error

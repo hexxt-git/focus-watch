@@ -1,5 +1,9 @@
-// Prevents an extra console window on Windows in release.
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+//! focus-watch is macOS only. The whole app is a thin wrapper around
+//! `NSWorkspace.frontmostApplication`; Windows has an equivalent, X11 has a
+//! workable one, and Wayland deliberately has none, so rather than ship windows
+//! that permanently read "—", other platforms don't build at all.
+#[cfg(not(target_os = "macos"))]
+compile_error!("focus-watch is macOS only: it reads NSWorkspace.frontmostApplication");
 
 use std::sync::Mutex;
 use std::{thread, time::Duration};
@@ -26,7 +30,6 @@ static STATE: Mutex<Focus> = Mutex::new(Focus {
     pid: 0,
 });
 
-#[cfg(target_os = "macos")]
 fn frontmost() -> Option<(i32, String)> {
     use objc2::runtime::AnyObject;
     use objc2::{class, msg_send};
@@ -49,11 +52,6 @@ fn frontmost() -> Option<(i32, String)> {
         }
         Some((pid, CStr::from_ptr(utf8).to_string_lossy().into_owned()))
     }
-}
-
-#[cfg(not(target_os = "macos"))]
-fn frontmost() -> Option<(i32, String)> {
-    None
 }
 
 /// `NSWorkspace` wants the main thread, so every tick hops there.
@@ -99,19 +97,16 @@ fn main() {
         .setup(|app| {
             // Accessory: no Dock tile and no app-switcher entry, so the readout
             // never becomes the thing being measured.
-            #[cfg(target_os = "macos")]
-            {
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-                // Ride along to every Space instead of living on the one it was
-                // opened in: join all Spaces, sit over fullscreen apps, stay out
-                // of Mission Control and out of Cmd-` cycling.
-                if let Some(w) = app.get_webview_window("main") {
-                    unsafe {
-                        let ns = w.ns_window()? as *mut objc2::runtime::AnyObject;
-                        let behavior: usize = (1 << 0) | (1 << 3) | (1 << 6) | (1 << 8);
-                        let _: () = objc2::msg_send![&*ns, setCollectionBehavior: behavior];
-                    }
+            // Ride along to every Space instead of living on the one it was
+            // opened in: join all Spaces, sit over fullscreen apps, stay out of
+            // Mission Control and out of Cmd-` cycling.
+            if let Some(w) = app.get_webview_window("main") {
+                unsafe {
+                    let ns = w.ns_window()? as *mut objc2::runtime::AnyObject;
+                    let behavior: usize = (1 << 0) | (1 << 3) | (1 << 6) | (1 << 8);
+                    let _: () = objc2::msg_send![&*ns, setCollectionBehavior: behavior];
                 }
             }
 
