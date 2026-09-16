@@ -1,0 +1,14 @@
+{
+  "name": "focus-watch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Always-on-top readout of which app currently has focus",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

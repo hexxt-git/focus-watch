@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Focus Watch</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font:
+          13px -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+        color: #16161a;
+        background: #fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: #f2f2f4;
+          background: #2b2b2f;
+        }
+      }
+      .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.45;
+      }
+      #current {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 2px 0 20px;
+        overflow-wrap: anywhere;
+      }
+      #previous {
+        margin-top: 2px;
+        opacity: 0.45;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="label">Focused</div>
+    <div id="current">—</div>
+
+    <div class="label">Before that</div>
+    <div id="previous">—</div>
+
+    <script>
+      const currentEl = document.getElementById("current");
+      const previousEl = document.getElementById("previous");
+
+      const render = (focus) => {
+        currentEl.textContent = focus.current || "—";
+        previousEl.textContent = focus.previous || "—";
+      };
+
+      // Whatever the poller has seen so far, so the window isn't blank on launch.
+      window.__TAURI__.core.invoke("focus_state").then(render);
+      window.__TAURI__.event.listen("focus", (e) => render(e.payload));
+    </script>
+  </body>
+</html>
